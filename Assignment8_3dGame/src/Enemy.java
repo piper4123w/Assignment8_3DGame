@@ -5,7 +5,7 @@ import javafx.scene.shape.Sphere;
 public class Enemy extends Sphere {
 	double x, y, z;
 	double distFromGun = world.levelRad;
-	double stepDist = 2;
+	double stepDist = 4;
 	double theta = 0;
 
 	boolean isAlive = true;
@@ -27,14 +27,16 @@ public class Enemy extends Sphere {
 	}
 
 	public void update() {
-		distFromGun -= stepDist;
-		x = Math.sin(theta) * distFromGun;
-		z = Math.cos(theta) * distFromGun;
-		this.setTranslateX(x);
-		this.setTranslateZ(z);
-		if (x == 0 && z == 0) {
-			System.out.println("GameOver");
-			isAlive = false;
+		if (isAlive) {
+			distFromGun -= stepDist;
+			x = Math.sin(theta) * distFromGun;
+			z = Math.cos(theta) * distFromGun;
+			this.setTranslateX(x);
+			this.setTranslateZ(z);
+			if (x == 0 && z == 0) {
+				System.exit(0);
+				isAlive = false;
+			}
 		}
 	}
 

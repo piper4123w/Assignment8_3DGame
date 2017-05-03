@@ -5,7 +5,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Transform;
 
 import java.util.ArrayList;
 
@@ -13,11 +12,11 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.geometry.Point3D;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.Cylinder;
+import javafx.scene.text.Text;
 
 /**
  * Simple 3D Game
@@ -35,19 +34,23 @@ public class world extends Application {
 
 	private double camDist = 50;
 
-	public static double levelRad = 1000;
+	public static double levelRad = 5000;
 
-	private double spawnChance = 0.005;
+	private double spawnChance = 0.05;
 	private int levelCount = 0;
-	private double gameTime = 0;
+	private int shootCoolDown;
 
 	ArrayList<Enemy> enemyList;
+	int bulletCap = 10;
+	Bullet[] bullets;
+	int bulletIndex = 0;
 
 	Gun gun;
-	Bullet amo;
-	Group sceneRoot; 
-	boolean shoot = false; 
-	
+	Group sceneRoot;
+	boolean shoot = false;
+
+	int score = 0;
+
 	private void constructWorld(Group root) {
 		AmbientLight light = new AmbientLight(Color.rgb(100, 100, 100));
 
@@ -73,14 +76,35 @@ public class world extends Application {
 
 		root.getChildren().addAll(light, gun, floor, skySphere);
 		enemyList = new ArrayList<Enemy>();
+		bullets = new Bullet[10];
+		for (int i = 0; i < bulletCap; i++) {
+			bullets[i] = new Bullet(0);
+			bullets[i].isAlive = false;
+
+		}
+		root.getChildren().addAll(bullets);
+
 	}
 
 	public void update(Group root) {
 		gun.update();
-		if (shoot == true){
-		amo.update();}
-		
+		if (shootCoolDown > 0)
+			shootCoolDown--;
+		for (Bullet b : bullets) {
+			if (b != null)
+				b.update();
+		}
+
 		ArrayList<Enemy> killList = new ArrayList<Enemy>();
+
+		for (Enemy e : enemyList) {
+			for (Bullet b : bullets) {
+				if (b.isHitting(e)) {
+					killList.add(e);
+					score++;
+				}
+			}
+		}
 
 		root.getChildren().removeAll(enemyList);
 		for (Enemy e : enemyList) {
@@ -94,12 +118,11 @@ public class world extends Application {
 
 		if (Math.random() < spawnChance) {
 			double theta = Math.toRadians(Math.random() * 360);
-			double rad = (Math.random() * 25) + 25;
+			double rad = 50;
 			Enemy en = new Enemy(theta, rad);
 			enemyList.add(en);
 		}
 		root.getChildren().addAll(enemyList);
-		gameTime += 0.0333333333; // game Time
 		levelCount++;
 		if (levelCount >= 600) {
 			spawnChance += 0.005; // spawn ammount increases every 3 seconds
@@ -108,19 +131,16 @@ public class world extends Application {
 		}
 	}
 
-	public void shoot(){
-		shoot = true;
-		amo = new Bullet(20, Color.BLACK);
-		Point3D loc = gun.localToScene(0, 0, 60);
-		amo.setTranslateX(loc.getX());
-		amo.setTranslateY(loc.getY()-30);
-		amo.setTranslateZ(loc.getZ()+100);
-		Transform rot = gun.getTransforms().get(0);
-		Point3D vel = rot.deltaTransform(0, 0, 4);
-		amo.vx = vel.getX(); amo.vy = vel.getY(); amo.vz = vel.getZ();
-		amo.setVisible(true);
-		sceneRoot.getChildren().add(amo);
+	public void shoot(Group root, double theta) {
+		shootCoolDown = 10;
+		bullets[bulletIndex].distFromGun = 0;
+		bullets[bulletIndex].isAlive = true;
+		bullets[bulletIndex].theta = theta;
+		bulletIndex++;
+		if (bulletIndex >= bulletCap)
+			bulletIndex = 0;
 	}
+
 	@Override
 	public void start(Stage primaryStage) {
 		// TODO Auto-generated method stub
@@ -166,8 +186,8 @@ public class world extends Application {
 			if (keycode == KeyCode.S && camDist < 100) {
 				camDist += 1;
 			}
-			if(keycode == KeyCode.SPACE){
-				shoot();
+			if (keycode == KeyCode.SPACE && shootCoolDown == 0) {
+				shoot(sceneRoot, Math.toRadians(gun.angle));
 			}
 
 		});
