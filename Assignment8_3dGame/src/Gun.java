@@ -13,7 +13,7 @@ import javafx.scene.transform.Rotate;
 public class Gun extends Group {
 	Color color = Color.BLACK;
 	Rotate rotate = new Rotate(); 
-	int angle = 30; 
+	double angle = 0; 
 	
 	public Gun() {
 		super();

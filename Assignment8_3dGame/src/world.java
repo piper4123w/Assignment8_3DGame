@@ -68,9 +68,8 @@ public class world extends Application {
 		cameraDolly.getChildren().add(camera);
 		sceneRoot.getChildren().add(cameraDolly);
 		// rotation transforms
-		Rotate xRotate = new Rotate(0, 0, 0, 0, Rotate.X_AXIS);
 		Rotate yRotate = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
-		camera.getTransforms().addAll(xRotate, yRotate);
+		camera.getTransforms().add(yRotate);
 
 		// Use keyboard to control camera position
 		scene.setOnKeyPressed(event -> {
@@ -87,9 +86,11 @@ public class world extends Application {
 			}
 			if (keycode == KeyCode.A) {
 				yRotate.setAngle(yRotate.getAngle() - 1);
+				gun.angle = yRotate.getAngle();
 			}
 			if (keycode == KeyCode.D) {
 				yRotate.setAngle(yRotate.getAngle() + 1);
+				gun.angle = yRotate.getAngle();
 			}
 			if (keycode == KeyCode.W) {
 				delta = new Point3D(0, -change, 0);
