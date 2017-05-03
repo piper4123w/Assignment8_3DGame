@@ -3,10 +3,15 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.transform.Rotate;
+
+import java.util.ArrayList;
+
 import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.geometry.Point3D;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.scene.shape.Cylinder;
 
 /**
@@ -19,11 +24,19 @@ import javafx.scene.shape.Cylinder;
 public class world extends Application {
 	final String appName = "Shooter Game";
 	final int FPS = 30;
-	private PerspectiveCamera camera;
 	private Group cameraDolly;
-	private final double cameraQuantity = 10.0;
 	private final double sceneWidth = 600;
 	private final double sceneHeight = 600;
+
+	private double camDist = 50;
+
+	public static double levelRad = 1000;
+
+	private double spawnChance = 0.05;
+	private int levelCount = 0;
+	private double gameTime = 0;
+
+	ArrayList<Enemy> enemyList;
 
 	Gun gun;
 
@@ -41,10 +54,32 @@ public class world extends Application {
 		final PhongMaterial mat = new PhongMaterial();
 		mat.setDiffuseColor(Color.DARKGREEN);
 		mat.setSpecularColor(Color.GREEN);
-		Cylinder floor = new Cylinder(1000, 1);
+		Cylinder floor = new Cylinder(levelRad, 1);
 		floor.setMaterial(mat);
 
 		root.getChildren().addAll(gun, floor);
+		enemyList = new ArrayList<Enemy>();
+	}
+
+	public void update(Group root) {
+		gun.update();
+		for (Enemy e : enemyList) {
+			e.update();
+		}
+		if (Math.random() < spawnChance) {
+			double theta = Math.toRadians(Math.random() * 360);
+			double rad = (Math.random() * 25) + 25;
+			Enemy en = new Enemy(theta, rad);
+			enemyList.add(en);
+			root.getChildren().add(en);
+		}
+		gameTime += 0.0333333333; // game Time
+		levelCount++;
+		if (levelCount >= 600) {
+			spawnChance += 0.05; // spawn ammount increases every 3 seconds
+			System.out.println("harder");
+			levelCount = 0;
+		}
 	}
 
 	@Override
@@ -56,57 +91,57 @@ public class world extends Application {
 
 		Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true);
 		scene.setFill(Color.LIGHTBLUE);
-		camera = new PerspectiveCamera(true);
-		camera.setNearClip(0.1);
-		camera.setFarClip(10000.0);
-		scene.setCamera(camera);
+
+		scene.setCamera(gun.camera);
 		// translations through dolly
 		cameraDolly = new Group();
-		//cameraDolly.setTranslateZ();
+		// cameraDolly.setTranslateZ();
 		cameraDolly.setTranslateX(0);
-		cameraDolly.setTranslateY(-80);
-		cameraDolly.getChildren().add(camera);
+		cameraDolly.setTranslateY(-100);
+		cameraDolly.setTranslateZ(-100);
+		cameraDolly.getChildren().add(gun.camera);
+		cameraDolly.setRotationAxis(Rotate.Y_AXIS);
 		sceneRoot.getChildren().add(cameraDolly);
 		// rotation transforms
-		Rotate yRotate = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
-		camera.getTransforms().add(yRotate);
 
 		// Use keyboard to control camera position
 		scene.setOnKeyPressed(event -> {
-			double change = cameraQuantity;
-			// What key did the user press?
+
 			KeyCode keycode = event.getCode();
 
-			Point3D delta = null;
-			if (keycode == KeyCode.COMMA) {
-				delta = new Point3D(0, 0, change);
-			}
-			if (keycode == KeyCode.PERIOD) {
-				delta = new Point3D(0, 0, -change);
-			}
 			if (keycode == KeyCode.A) {
-				yRotate.setAngle(yRotate.getAngle() - 1);
-				gun.angle = yRotate.getAngle();
+				gun.angle -= 1;
 			}
 			if (keycode == KeyCode.D) {
-				yRotate.setAngle(yRotate.getAngle() + 1);
-				gun.angle = yRotate.getAngle();
+				gun.angle += 1;
 			}
-			if (keycode == KeyCode.W) {
-				delta = new Point3D(0, -change, 0);
+			if (keycode == KeyCode.ENTER) {
+				System.out.println(gun.xRotate.getAngle() + " = X rot");
+				System.out.println(gun.yRotate.getAngle() + " = Y rot");
+				System.out.println(cameraDolly.getTranslateX() + "," + cameraDolly.getTranslateY() + ","
+						+ cameraDolly.getTranslateZ());
 			}
-			if (keycode == KeyCode.S) {
-				delta = new Point3D(0, change, 0);
+			if (keycode == KeyCode.W && camDist > 25) { // zooming
+				camDist -= 1;
+			}
+			if (keycode == KeyCode.S && camDist < 100) {
+				camDist += 1;
 			}
 
-			if (delta != null) {
-				Point3D delta2 = camera.localToParent(delta);
-				cameraDolly.setTranslateX(cameraDolly.getTranslateX() + delta2.getX());
-				cameraDolly.setTranslateY(cameraDolly.getTranslateY() + delta2.getY());
-				cameraDolly.setTranslateZ(cameraDolly.getTranslateZ() + delta2.getZ());
-
-			}
 		});
+
+		// Setup and start animation loop (Timeline)
+		KeyFrame kf = new KeyFrame(Duration.millis(1000 / FPS), e -> {
+			// update position
+			update(sceneRoot);
+			cameraDolly.setRotate(gun.angle);
+			cameraDolly.setTranslateX(-Math.sin(Math.toRadians(gun.angle)) * camDist);
+			cameraDolly.setTranslateZ(-Math.cos(Math.toRadians(gun.angle)) * camDist);
+		});
+		Timeline mainLoop = new Timeline(kf);
+		mainLoop.setCycleCount(Animation.INDEFINITE);
+		mainLoop.play();
+
 		primaryStage.setTitle("World1");
 		primaryStage.setScene(scene);
 		primaryStage.show();
