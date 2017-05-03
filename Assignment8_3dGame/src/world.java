@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 
 
 public class world extends Application {
+	final String appName = "Shooter Game";
+	final int FPS = 30;
 	private PerspectiveCamera camera;
 	private Group cameraDolly;
 	private final double cameraQuantity = 10.0;
@@ -28,6 +30,7 @@ public class world extends Application {
 	private double mouseDeltaX;
 	private double mouseDeltaY;
 	
+	Gun gun; 
 	
 	private void constructWorld(Group root){
 		AmbientLight light = new AmbientLight(Color.rgb(100, 100, 100));
@@ -35,8 +38,11 @@ public class world extends Application {
 		PointLight pl = new PointLight();
 		pl.setTranslateX(100);
 		pl.setTranslateY(-100);
-		pl.setTranslateZ(-200);
+		pl.setTranslateZ(-100);
 		root.getChildren().add(pl);
+		
+		gun = new Gun();
+		root.getChildren().add(gun);
 	}
 	@Override
 	public void start(Stage primaryStage) {
