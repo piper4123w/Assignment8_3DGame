@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Transform;
 
 import java.util.ArrayList;
 
@@ -12,6 +13,7 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.Point3D;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.shape.CullFace;
@@ -42,7 +44,10 @@ public class world extends Application {
 	ArrayList<Enemy> enemyList;
 
 	Gun gun;
-
+	Bullet amo;
+	Group sceneRoot; 
+	boolean shoot = false; 
+	
 	private void constructWorld(Group root) {
 		AmbientLight light = new AmbientLight(Color.rgb(100, 100, 100));
 
@@ -72,6 +77,9 @@ public class world extends Application {
 
 	public void update(Group root) {
 		gun.update();
+		if (shoot == true){
+		amo.update();}
+		
 		ArrayList<Enemy> killList = new ArrayList<Enemy>();
 
 		root.getChildren().removeAll(enemyList);
@@ -100,11 +108,24 @@ public class world extends Application {
 		}
 	}
 
+	public void shoot(){
+		shoot = true;
+		amo = new Bullet(20, Color.BLACK);
+		Point3D loc = gun.localToScene(0, 0, 60);
+		amo.setTranslateX(loc.getX());
+		amo.setTranslateY(loc.getY()-30);
+		amo.setTranslateZ(loc.getZ()+100);
+		Transform rot = gun.getTransforms().get(0);
+		Point3D vel = rot.deltaTransform(0, 0, 4);
+		amo.vx = vel.getX(); amo.vy = vel.getY(); amo.vz = vel.getZ();
+		amo.setVisible(true);
+		sceneRoot.getChildren().add(amo);
+	}
 	@Override
 	public void start(Stage primaryStage) {
 		// TODO Auto-generated method stub
 		// Build your Scene and Camera
-		Group sceneRoot = new Group();
+		sceneRoot = new Group();
 		constructWorld(sceneRoot);
 
 		Scene scene = new Scene(sceneRoot, sceneWidth, sceneHeight, true);
@@ -144,6 +165,9 @@ public class world extends Application {
 			}
 			if (keycode == KeyCode.S && camDist < 100) {
 				camDist += 1;
+			}
+			if(keycode == KeyCode.SPACE){
+				shoot();
 			}
 
 		});
