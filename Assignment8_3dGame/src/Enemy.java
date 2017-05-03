@@ -8,6 +8,8 @@ public class Enemy extends Sphere {
 	double stepDist = 2;
 	double theta = 0;
 
+	boolean isAlive = true;
+
 	public Enemy(double angle, double radius) {
 		super(radius);
 		theta = angle;
@@ -32,6 +34,7 @@ public class Enemy extends Sphere {
 		this.setTranslateZ(z);
 		if (x == 0 && z == 0) {
 			System.out.println("GameOver");
+			isAlive = false;
 		}
 	}
 

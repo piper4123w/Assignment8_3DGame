@@ -1,7 +1,9 @@
 import javafx.scene.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.shape.CullFace;
 import javafx.scene.shape.Cylinder;
 
 /**
@@ -32,7 +35,7 @@ public class world extends Application {
 
 	public static double levelRad = 1000;
 
-	private double spawnChance = 0.05;
+	private double spawnChance = 0.005;
 	private int levelCount = 0;
 	private double gameTime = 0;
 
@@ -57,26 +60,41 @@ public class world extends Application {
 		Cylinder floor = new Cylinder(levelRad, 1);
 		floor.setMaterial(mat);
 
-		root.getChildren().addAll(gun, floor);
+		Sphere skySphere = new Sphere(levelRad);
+		final PhongMaterial skyMat = new PhongMaterial();
+		skyMat.setDiffuseMap(new Image(getClass().getResource("sky.jpg").toExternalForm()));
+		skySphere.setMaterial(skyMat);
+		skySphere.setCullFace(CullFace.NONE);
+
+		root.getChildren().addAll(light, gun, floor, skySphere);
 		enemyList = new ArrayList<Enemy>();
 	}
 
 	public void update(Group root) {
 		gun.update();
+		ArrayList<Enemy> killList = new ArrayList<Enemy>();
+
+		root.getChildren().removeAll(enemyList);
 		for (Enemy e : enemyList) {
 			e.update();
+			if (!e.isAlive) {
+				killList.add(e);
+			}
 		}
+		enemyList.removeAll(killList);
+		root.getChildren().removeAll(killList);
+
 		if (Math.random() < spawnChance) {
 			double theta = Math.toRadians(Math.random() * 360);
 			double rad = (Math.random() * 25) + 25;
 			Enemy en = new Enemy(theta, rad);
 			enemyList.add(en);
-			root.getChildren().add(en);
 		}
+		root.getChildren().addAll(enemyList);
 		gameTime += 0.0333333333; // game Time
 		levelCount++;
 		if (levelCount >= 600) {
-			spawnChance += 0.05; // spawn ammount increases every 3 seconds
+			spawnChance += 0.005; // spawn ammount increases every 3 seconds
 			System.out.println("harder");
 			levelCount = 0;
 		}
