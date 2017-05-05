@@ -23,7 +23,13 @@ import javafx.scene.text.Text;
  * Simple 3D Game
  * 
  * @author Courtney Connery and Kyle Lawson
- *
+ * Controls: Move left,right,close,farther-- a,d,w,s
+ * "Bloop" sound happens when enemies spawn
+ * Player dies when hit by enemy
+ * Shoot the enemies to win
+ * sound URLs:
+ * 		bloops: https://www.freesound.org/people/Greencouch/sounds/124902/
+ * 
  */
 
 public class world extends Application {
@@ -49,7 +55,7 @@ public class world extends Application {
 	Gun gun;
 	Group sceneRoot;
 	boolean shoot = false;
-	AudioClip shoot_noise; 
+	AudioClip shoot_noise, enemy_spawn;
 	
 	int score = 0;
 
@@ -64,7 +70,7 @@ public class world extends Application {
 
 		gun = new Gun();
 		shoot_noise = new AudioClip(ClassLoader.getSystemResource("BulletFired.wav").toString());
-		
+		enemy_spawn = new AudioClip(ClassLoader.getSystemResource("enemy_spawn.wav").toString());
 		final PhongMaterial mat = new PhongMaterial();
 		mat.setDiffuseColor(Color.DARKGREEN);
 		mat.setSpecularColor(Color.GREEN);
@@ -125,12 +131,13 @@ public class world extends Application {
 			double rad = 50;
 			Enemy en = new Enemy(theta, rad);
 			enemyList.add(en);
+			enemy_spawn.play();
 		}
 		root.getChildren().addAll(enemyList);
 		levelCount++;
 		if (levelCount >= 600) {
 			spawnChance += 0.005; // spawn ammount increases every 3 seconds
-			System.out.println("harder");
+			System.out.println("Level Up");
 			levelCount = 0;
 		}
 	}
