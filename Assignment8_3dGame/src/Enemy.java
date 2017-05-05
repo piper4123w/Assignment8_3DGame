@@ -33,9 +33,10 @@ public class Enemy extends Sphere {
 			z = Math.cos(theta) * distFromGun;
 			this.setTranslateX(x);
 			this.setTranslateZ(z);
-			if (x == 0 && z == 0) {
-				System.exit(0);
+			if (distFromGun <= 50){
+				System.out.println("Game Over");
 				isAlive = false;
+				System.exit(0);
 			}
 		}
 	}

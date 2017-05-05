@@ -1,6 +1,7 @@
 import javafx.scene.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
@@ -48,7 +49,8 @@ public class world extends Application {
 	Gun gun;
 	Group sceneRoot;
 	boolean shoot = false;
-
+	AudioClip shoot_noise; 
+	
 	int score = 0;
 
 	private void constructWorld(Group root) {
@@ -61,7 +63,8 @@ public class world extends Application {
 		root.getChildren().add(pl);
 
 		gun = new Gun();
-
+		shoot_noise = new AudioClip(ClassLoader.getSystemResource("BulletFired.wav").toString());
+		
 		final PhongMaterial mat = new PhongMaterial();
 		mat.setDiffuseColor(Color.DARKGREEN);
 		mat.setSpecularColor(Color.GREEN);
@@ -102,6 +105,7 @@ public class world extends Application {
 				if (b.isHitting(e)) {
 					killList.add(e);
 					score++;
+					System.out.println("Points = " + score);
 				}
 			}
 		}
@@ -132,6 +136,7 @@ public class world extends Application {
 	}
 
 	public void shoot(Group root, double theta) {
+		shoot_noise.play();
 		shootCoolDown = 10;
 		bullets[bulletIndex].distFromGun = 0;
 		bullets[bulletIndex].isAlive = true;
@@ -143,7 +148,6 @@ public class world extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		// TODO Auto-generated method stub
 		// Build your Scene and Camera
 		sceneRoot = new Group();
 		constructWorld(sceneRoot);
